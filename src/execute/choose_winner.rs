@@ -57,6 +57,9 @@ pub fn choose_winner(
   let mut transfer_msgs: Vec<CosmosMsg> = vec![];
   let mut cw20_transfer_msgs: Vec<SubMsg> = vec![];
 
+  // init response
+  let mut resp = Response::new().add_attributes(vec![attr("action", "resolve_winner")]);
+
   if let Some(winning_cell) = GRID.may_load(deps.storage, winner)? {
     // get addrs of players in grid cell that won
     let winning_wallets = winning_cell.wallets.unwrap_or(vec![]);
@@ -75,6 +78,10 @@ pub fn choose_winner(
           },
         }
       }
+
+      // add transfer msgs required by gelotto tax
+      let gelotto_tax_amount = full_quarter_prize_amount - quarter_prize_amount;
+      resp = append_gelotto_tax_msgs(&resp, &game.token, gelotto_tax_amount)?;
     } else if (game.quarter_index as usize) == (n_quarters - 1) {
       // There aren't any buyers for the winning square AND it's the last round.
       // In this case, put the contract in a state where each player can claim
@@ -105,14 +112,9 @@ pub fn choose_winner(
       }
     }
   } else {
+    // The given coordinates for the winning grid cell are out of bounds
     return Err(ContractError::CoordinatesOutOfBounds {});
   }
-
-  // init response
-  let mut resp = Response::new().add_attributes(vec![attr("action", "resolve_winner")]);
-
-  // add transfer msgs required by gelotto tax
-  resp = append_gelotto_tax_msgs(&resp, &game.token, full_quarter_prize_amount - quarter_prize_amount)?;
 
   // increment the quarter index, effectively moving to the next
   // quarter or, in the final case, ending the game
