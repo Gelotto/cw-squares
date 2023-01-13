@@ -2,7 +2,7 @@ use cosmwasm_std::Addr;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::models::{Cell, GridCoordinates, Player, Quarter, Team, Token};
+use crate::models::{Cell, Game, GridCoordinates, Player, Quarter, Team, Token};
 
 /// Initial contract state.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -21,15 +21,17 @@ pub struct InstantiateMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
-  AddPlayer {
+  RegisterPlayer {
     wallet: Addr,
     name: Option<String>,
     color: Option<String>,
   },
-  BuyCells {
+  StartGame {},
+  ClaimRefund {},
+  BuySquares {
     coordinates: Vec<GridCoordinates>,
   },
-  ResolveWinner {
+  ChooseWinner {
     winner: GridCoordinates,
   },
 }
@@ -38,10 +40,15 @@ pub enum ExecuteMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-  IsAdmin { address: Addr },
+  Game {
+    with_players: Option<bool>,
+    with_grid: Option<bool>,
+  },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct BooleanResponse {
-  pub value: bool,
+pub struct GameResponse {
+  pub game: Game,
+  pub grid: Option<Vec<Cell>>,
+  pub players: Option<Vec<Player>>,
 }

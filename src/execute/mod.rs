@@ -1,3 +1,5 @@
-pub mod add_player;
-pub mod buy_cells;
-pub mod resolve_winner;
+pub mod buy_squares;
+pub mod choose_winner;
+pub mod claim_refund;
+pub mod register_player;
+pub mod start_game;

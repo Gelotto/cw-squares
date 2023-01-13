@@ -1,3 +1,1 @@
-mod get_game;
-
-pub use get_game::get_game;
+pub mod query_game;

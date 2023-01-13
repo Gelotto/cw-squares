@@ -16,6 +16,7 @@ pub struct Game {
   pub admin: Addr,
   pub name: String,
   pub is_public: bool,
+  pub can_claim_refund: bool,
   pub has_started: bool,
   pub quarters: Vec<Quarter>,
   pub quarter_index: u8,
@@ -46,7 +47,7 @@ pub struct Team {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Cell {
-  pub player_addrs: Option<Vec<Addr>>,
+  pub wallets: Option<Vec<Addr>>,
   pub price: Uint128,
 }
 
@@ -62,4 +63,5 @@ pub struct Player {
   pub name: Option<String>,
   pub color: Option<String>,
   pub positions: Option<Vec<Position>>,
+  pub has_claimed_refund: Option<bool>,
 }

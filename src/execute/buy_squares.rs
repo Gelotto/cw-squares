@@ -6,7 +6,7 @@ use crate::{
 use cosmwasm_std::{attr, Addr, Coin, DepsMut, Env, MessageInfo, Response, Uint128};
 use cw20::Cw20QueryMsg;
 
-pub fn buy_cells(
+pub fn buy_squares(
   deps: DepsMut,
   _env: Env,
   info: MessageInfo,
@@ -30,7 +30,7 @@ pub fn buy_cells(
         coords.clone(),
         |some_cell| -> Result<Cell, ContractError> {
           if let Some(mut cell) = some_cell {
-            let mut player_addrs = cell.player_addrs.unwrap_or(vec![]);
+            let mut player_addrs = cell.wallets.unwrap_or(vec![]);
             if let Some(max_players_per_cell) = game.max_players_per_cell {
               if player_addrs.len() == max_players_per_cell as usize {
                 // sold out of spots in this cell
@@ -44,7 +44,7 @@ pub fn buy_cells(
 
             // save the player's addr to the cell
             player_addrs.push(player_addr.clone());
-            cell.player_addrs = Some(player_addrs);
+            cell.wallets = Some(player_addrs);
 
             // increment running subtotal for the purchase amount
             payment_amount += cell.price;

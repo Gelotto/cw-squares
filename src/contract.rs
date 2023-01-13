@@ -1,9 +1,12 @@
 #[cfg(not(feature = "library"))]
 use crate::error::ContractError;
-use crate::execute::add_player::add_player;
-use crate::execute::buy_cells::buy_cells;
-use crate::execute::resolve_winner::resolve_winner;
+use crate::execute::buy_squares::buy_squares;
+use crate::execute::choose_winner::choose_winner;
+use crate::execute::claim_refund::claim_refund;
+use crate::execute::register_player::register_player;
+use crate::execute::start_game::start_game;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use crate::query::query_game::query_game;
 use crate::state;
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
@@ -32,20 +35,25 @@ pub fn execute(
   msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
   match msg {
-    ExecuteMsg::AddPlayer { wallet, name, color } => add_player(deps, env, info, &wallet, name, color),
-    ExecuteMsg::BuyCells { coordinates } => buy_cells(deps, env, info, &coordinates),
-    ExecuteMsg::ResolveWinner { winner } => resolve_winner(deps, env, info, winner),
+    ExecuteMsg::RegisterPlayer { wallet, name, color } => register_player(deps, env, info, &wallet, name, color),
+    ExecuteMsg::StartGame {} => start_game(deps, env, info),
+    ExecuteMsg::BuySquares { coordinates } => buy_squares(deps, env, info, &coordinates),
+    ExecuteMsg::ChooseWinner { winner } => choose_winner(deps, env, info, winner),
+    ExecuteMsg::ClaimRefund {} => claim_refund(deps, env, info),
   }
 }
 
-// #[cfg_attr(not(feature = "library"), entry_point)]
-// pub fn query(
-//   deps: Deps,
-//   _env: Env,
-//   msg: QueryMsg,
-// ) -> StdResult<Binary> {
-//   let result = match msg {
-//     QueryMsg::IsAllowed { principal, action } => to_binary(&is_allowed(deps, &principal, &action)?),
-//   }?;
-//   Ok(result)
-// }
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn query(
+  deps: Deps,
+  _env: Env,
+  msg: QueryMsg,
+) -> StdResult<Binary> {
+  let result = match msg {
+    QueryMsg::Game {
+      with_grid,
+      with_players,
+    } => to_binary(&query_game(deps, with_grid, with_players)?),
+  }?;
+  Ok(result)
+}

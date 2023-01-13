@@ -19,15 +19,22 @@ pub fn initialize(
   info: &MessageInfo,
   msg: &InstantiateMsg,
 ) -> Result<(), ContractError> {
-  // save each player, preventing duplicate wallet addresses
   let mut player_wallets: HashSet<Addr> = HashSet::with_capacity(1);
+
+  // save each player, preventing duplicate wallet addresses
   if let Some(players) = &msg.players {
-    for player in players.iter() {
+    for player in players.clone().iter_mut() {
       if player_wallets.contains(&player.wallet) {
         return Err(ContractError::DuplicatePlayerAddress {});
       }
-      PLAYERS.save(deps.storage, player.wallet.clone(), player)?;
+
+      // force default internal player fields:
+      player.has_claimed_refund = Some(false);
+      player.positions = None;
+
       player_wallets.insert(player.wallet.clone());
+
+      PLAYERS.save(deps.storage, player.wallet.clone(), player)?;
     }
   }
 
@@ -38,6 +45,7 @@ pub fn initialize(
       info.sender.clone(),
       &Player {
         wallet: info.sender.clone(),
+        has_claimed_refund: Some(false),
         positions: None,
         name: None,
         color: None,
@@ -77,7 +85,7 @@ pub fn initialize(
       return Err(ContractError::InvalidGridCellPrice {});
     }
     // validate player addresses
-    if let Some(cell_player_addrs) = &cell.player_addrs {
+    if let Some(cell_player_addrs) = &cell.wallets {
       for player_addr in cell_player_addrs.iter() {
         if !player_wallets.contains(&player_addr) {
           return Err(ContractError::UnknownPlayerAddress {});
@@ -88,7 +96,7 @@ pub fn initialize(
       deps.storage,
       ((i / 10) as u8, (i % 10) as u8),
       &Cell {
-        player_addrs: cell.player_addrs.clone(),
+        wallets: cell.wallets.clone(),
         price: cell.price,
       },
     )?;
@@ -110,6 +118,7 @@ pub fn initialize(
       token: msg.token.clone(),
       max_players_per_cell: msg.max_players_per_cell,
       has_started: false,
+      can_claim_refund: false,
       token_amount: Uint128::zero(),
       quarter_index: 0,
       quarters,

@@ -5,7 +5,7 @@ use crate::{
 };
 use cosmwasm_std::{attr, Addr, DepsMut, Env, MessageInfo, Response};
 
-pub fn add_player(
+pub fn register_player(
   deps: DepsMut,
   _env: Env,
   info: MessageInfo,
@@ -35,6 +35,7 @@ pub fn add_player(
         Ok(Player {
           wallet: player_addr.clone(),
           positions: None,
+          has_claimed_refund: Some(false),
           name,
           color,
         })
