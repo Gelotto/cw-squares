@@ -12,7 +12,7 @@ To create a game, simply instantiate the contract. The contract is initialized w
 fn start_game();
 ```
 
-Start the game. This means that new players cannot be added and no new squares can be sold.
+The game creator can call `start_game` to close the game to further sales and signal that the first quarter has begun. At this point, existing players are locked in.
 
 ### Register Player
 
@@ -24,18 +24,22 @@ fn register_player(
 );
 ```
 
-The creator of the game can register new wallets as players until the game has started. They can start the game by executing the `start_game` function.
+The game creator can use this function to register additional players, provided that the game hasn't started. Note that the contract can be optionally initialized with players. This function doesn't need to be used if the game is "public", which can be determined by inspecting its `is_public` flag.
 
 ### Buy Squares
 
 ```rust
 fn buy_squares(
     // NOTE: type GridCoordinates = (u8, u8);
-    coordinates: Vec<GridCoordinates>
+    coordinates: Vec<GridCoordinates>,
+    player_name: Option<String>,
+    player_color: Option<String>,
 );
 ```
 
 A player who has been registered with the contract can place an order to buy one or more squares by executing `buy_cells`. This is only possible before the game has started via execution of the `start_game` function.
+
+Note that the `player_name` and `player_color` optional args only come into play for public games. In this case, the purchasing wallet can provide values for their display name and color to use when instantiating their on-chain player's state.
 
 ### Choose Winner
 

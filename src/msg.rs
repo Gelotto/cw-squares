@@ -30,6 +30,8 @@ pub enum ExecuteMsg {
   ClaimRefund {},
   BuySquares {
     coordinates: Vec<GridCoordinates>,
+    player_name: Option<String>,
+    player_color: Option<String>,
   },
   ChooseWinner {
     winner: GridCoordinates,

@@ -1,6 +1,6 @@
 use crate::{
   error::ContractError,
-  models::{Cell, GridCoordinates, Position},
+  models::{Cell, GridCoordinates, Player, Position},
   state::{GAME, GRID, PLAYERS},
 };
 use cosmwasm_std::{attr, Addr, Coin, DepsMut, Env, MessageInfo, Response, Uint128};
@@ -11,17 +11,45 @@ pub fn buy_squares(
   _env: Env,
   info: MessageInfo,
   coordinates_list: &Vec<GridCoordinates>,
+  player_name: Option<String>,
+  player_color: Option<String>,
 ) -> Result<Response, ContractError> {
-  let player_addr = &info.sender;
+  let mut game = GAME.load(deps.storage)?;
   let mut payment_amount = Uint128::zero();
+  let player_addr = &info.sender;
+
+  if game.is_over() {
+    return Err(ContractError::GameOver {});
+  }
+
+  if game.has_started {
+    return Err(ContractError::NotAuthorized {});
+  }
+
+  // if the game is public and this is the first time the wallet has
+  // tried to buy squares, lazy init the player here.
+  if game.is_public {
+    PLAYERS.update(
+      deps.storage,
+      info.sender.clone(),
+      |some_player| -> Result<Player, ContractError> {
+        if let Some(player) = some_player {
+          Ok(player)
+        } else {
+          Ok(Player {
+            wallet: player_addr.clone(),
+            name: player_name.clone(),
+            color: player_color.clone(),
+            positions: None,
+            has_claimed_refund: Some(false),
+          })
+        }
+      },
+    )?;
+  }
 
   if let Some(mut player) = PLAYERS.may_load(deps.storage, player_addr.clone())? {
-    let mut game = GAME.load(deps.storage)?;
     let mut positions = player.positions.unwrap_or(vec![]);
-
-    if game.is_over() {
-      return Err(ContractError::GameOver {});
-    }
 
     for coords in coordinates_list.iter() {
       // update each puchased cell's state

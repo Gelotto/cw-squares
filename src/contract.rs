@@ -37,7 +37,11 @@ pub fn execute(
   match msg {
     ExecuteMsg::RegisterPlayer { wallet, name, color } => register_player(deps, env, info, &wallet, name, color),
     ExecuteMsg::StartGame {} => start_game(deps, env, info),
-    ExecuteMsg::BuySquares { coordinates } => buy_squares(deps, env, info, &coordinates),
+    ExecuteMsg::BuySquares {
+      coordinates,
+      player_name,
+      player_color,
+    } => buy_squares(deps, env, info, &coordinates, player_name, player_color),
     ExecuteMsg::ChooseWinner { winner } => choose_winner(deps, env, info, winner),
     ExecuteMsg::ClaimRefund {} => claim_refund(deps, env, info),
   }
