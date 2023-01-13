@@ -45,6 +45,9 @@ pub enum ContractError {
   #[error("AlreadyResolved")]
   AlreadyResolved {},
 
+  #[error("AlreadyClaimedRefund")]
+  AlreadyClaimedRefund {},
+
   #[error("AlreadyStarted")]
   AlreadyStarted {},
 

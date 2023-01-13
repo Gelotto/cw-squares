@@ -21,6 +21,9 @@ pub fn claim_refund(
 
   // only existing players can claim refund
   if let Some(mut player) = PLAYERS.may_load(deps.storage, info.sender.clone())? {
+    if player.has_claimed_refund.unwrap_or(false) {
+      return Err(ContractError::AlreadyClaimedRefund {});
+    }
     if let Some(positions) = &player.positions {
       // tabulate total amount spent by player
       let mut total_spend = Uint128::zero();
